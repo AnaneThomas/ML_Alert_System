@@ -43,6 +43,7 @@ Thumbs.db
 # Project specific
 models/*.joblib
 csv/*.csv
+!csv/sample_*.csv
 data/*.csv
 ind.html
 

@@ -1,0 +1,4 @@
+Id,START,STOP,PATIENT,ENCOUNTER,CODE,DESCRIPTION,TYPE1,TYPE2,REACTION1,REACTION2,DESCRIPTION1,DESCRIPTION2
+1,2020-02-01,,1,1,715.55,Penicillin allergy,Medication,Drug,Anaphylaxis,Hives,Severe allergic reaction,Mild skin reaction
+2,2020-04-15,,2,2,715.10,Peanut allergy,Food,Food,Nausea,Swelling,Gastrointestinal reaction,Mild swelling
+3,2021-07-20,,3,3,715.32,Latex allergy,Material,Material,Rash,Itching,Skin reaction,Mild itching
