@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedAlert – Clinical Medication Alert</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #f8fafc; color: #0f172a; margin: 0; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    @keyframes spin  { to{transform:rotate(360deg)} }
+    .pulse { animation: pulse 2s infinite; }
+    .spin  { animation: spin 1s linear infinite; }
+    .sidebar { position: fixed; top:0; left:0; height:100%; width:240px; z-index:30; background:#fff; border-right:1px solid #e2e8f0; display:flex; flex-direction:column; transform: translateX(-100%); transition: transform .28s cubic-bezier(.4,0,.2,1); }
+    .sidebar.open { transform: translateX(0); }
+    @media(min-width:1024px){ .sidebar { position:sticky; top:0; height:100vh; transform:none !important; } .sidebar-overlay { display:none !important; } .hamburger { display:none !important; } }
+    .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.3); z-index:20; }
+    .sidebar-overlay.show { display:block; }
+    .app { display:flex; min-height:100vh; }
+    .main { flex:1; display:flex; flex-direction:column; min-height:100vh; overflow-y:auto; min-width:0; }
+    .topbar { height:56px; background:#fff; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; padding:0 16px; gap:12px; flex-shrink:0; position:fixed; top:0; right:0; left:0; z-index:10; }
+    @media(min-width:1024px){ .topbar { left:240px; } }
+    @media(min-width:768px){ .topbar { padding:0 28px; } }
+    .content { flex:1; padding:16px; padding-top:72px; }
+    @media(min-width:768px){ .content { padding:24px; padding-top:80px; } }
+    @media(min-width:1024px){ .content { padding:28px; padding-top:84px; } }
+    .card { background:#fff; border:1px solid #e2e8f0; border-radius:16px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+    .card-header { padding:14px 20px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:8px; }
+    .card-body { padding:20px; }
+    .accent-bar { height:4px; background:linear-gradient(90deg,#22d3ee,#14b8a6,#22d3ee); }
+    .nav-item { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:12px; cursor:pointer; border:1px solid transparent; transition:all .15s; text-align:left; width:100%; background:transparent; }
+    .nav-item:hover { background:#f8fafc; color:#1e293b; }
+    .nav-item.active { background:#ecfeff; border-color:#a5f3fc; color:#0e7490; }
+    .nav-icon { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; background:#f1f5f9; }
+    .nav-item.active .nav-icon { background:#cffafe; }
+    .input { width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; font-size:14px; color:#1e293b; background:#fff; outline:none; transition:border-color .15s, box-shadow .15s; font-family:inherit; }
+    .input:focus { border-color:#22d3ee; box-shadow:0 0 0 3px rgba(34,211,238,.12); }
+    .input.with-icon { padding-left:36px; }
+    .input.readonly { background:#f8fafc; cursor:default; }
+    .input-wrap { position:relative; }
+    .input-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#94a3b8; }
+    .textarea { width:100%; border:1px solid #e2e8f0; border-radius:8px; padding:10px 12px; font-size:14px; color:#1e293b; background:#fff; outline:none; resize:none; font-family:inherit; transition:border-color .15s, box-shadow .15s; }
+    .textarea:focus { border-color:#22d3ee; box-shadow:0 0 0 3px rgba(34,211,238,.12); }
+    .btn-primary { display:inline-flex; align-items:center; gap:8px; padding:10px 20px; border-radius:12px; background:#0891b2; color:#fff; font-size:14px; font-weight:600; border:none; cursor:pointer; transition:background .15s, transform .1s; box-shadow:0 1px 3px rgba(0,0,0,.1); }
+    .btn-primary:hover { background:#0e7490; }
+    .btn-primary:active { transform:scale(.97); }
+    .btn-primary:disabled { opacity:.4; cursor:not-allowed; }
+    .btn-ghost { display:inline-flex; align-items:center; gap:6px; padding:10px 16px; border-radius:12px; background:#fff; color:#64748b; font-size:14px; font-weight:500; border:1px solid #e2e8f0; cursor:pointer; transition:all .15s; }
+    .btn-ghost:hover { background:#f8fafc; border-color:#cbd5e1; }
+    .field { display:flex; flex-direction:column; gap:6px; }
+    .label { font-size:11px; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:.08em; }
+    .avatar { border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; flex-shrink:0; }
+    .badge { display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:9999px; font-size:12px; font-weight:500; border:1px solid; }
+    .risk-track { height:8px; border-radius:4px; overflow:hidden; }
+    .risk-fill  { height:100%; border-radius:4px; transition:width .7s ease; }
+    .dropdown { position:absolute; top:100%; left:0; right:0; margin-top:4px; background:#fff; border:1px solid #e2e8f0; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.1); z-index:50; overflow:hidden; }
+    .dropdown-item { display:flex; align-items:center; gap:12px; padding:12px 16px; cursor:pointer; border-bottom:1px solid #f1f5f9; transition:background .1s; background:#fff; width:100%; text-align:left; }
+    .dropdown-item:last-child { border-bottom:none; }
+    .dropdown-item:hover { background:#f8fafc; }
+    .result-alert { border-color:#fecaca !important; }
+    .result-safe  { border-color:#a7f3d0 !important; }
+    .result-header-alert { background:#fef2f2; border-bottom:1px solid #fecaca; }
+    .result-header-safe  { background:#f0fdf4; border-bottom:1px solid #a7f3d0; }
+    .page-header { display:flex; flex-direction:column; gap:12px; margin-bottom:32px; }
+    @media(min-width:640px){ .page-header { flex-direction:row; align-items:flex-start; justify-content:space-between; } }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .check-grid { display:grid; gap:20px; }
+    @media(min-width:1024px){ .check-grid.has-result { grid-template-columns:1fr 340px; } }
+    .truncate { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .hidden { display:none !important; }
+    svg { display:inline-block; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div style="padding:20px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#22d3ee,#0d9488);display:flex;align-items:center;justify-content:center;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#0f172a;">MedAlert</div>
+          <div style="font-size:10px;color:#94a3b8;font-weight:500;">Clinical AI System</div>
+        </div>
+      </div>
+      <button class="hamburger" onclick="closeSidebar()" style="background:none;border:none;cursor:pointer;padding:4px;color:#94a3b8;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <nav style="flex:1;padding:12px;display:flex;flex-direction:column;gap:4px;">
+      <div style="font-size:10px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;padding:8px 12px;">Main Menu</div>
+      <button class="nav-item active" id="nav-medication" onclick="navigate('medication')">
+        <div class="nav-icon" id="navicon-medication"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg></div>
+        <div><div style="font-size:14px;font-weight:600;line-height:1;">Medication</div><div id="navdesc-medication" style="font-size:10px;margin-top:2px;color:#0891b2;">Safety checks</div></div>
+        <svg id="navarrow-medication" style="margin-left:auto;color:#67e8f9;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <button class="nav-item" id="nav-patients" onclick="window.location.href='/patients'">
+        <div class="nav-icon" id="navicon-patients"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <div><div style="font-size:14px;font-weight:600;line-height:1;">Patients</div><div id="navdesc-patients" style="font-size:10px;margin-top:2px;color:#94a3b8;">Directory</div></div>
+      </button>
+    </nav>
+    <div style="padding:16px;border-top:1px solid #f1f5f9;">
+      <div style="display:flex;align-items:center;gap:8px;padding:12px;border-radius:12px;background:linear-gradient(90deg,#ecfeff,#f0fdfa);border:1px solid #a5f3fc;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        <div><div style="font-size:12px;font-weight:600;color:#1e293b;">ML Threshold</div><div style="font-size:10px;color:#64748b;">Sensitivity: 0.5</div></div>
+      </div>
+      <div style="font-size:10px;color:#cbd5e1;text-align:center;margin-top:12px;">Final Year Project · v1.0</div>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+        <button class="hamburger" onclick="openSidebar()" style="width:32px;height:32px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#64748b;flex-shrink:0;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div style="display:flex;align-items:center;gap:6px;font-size:14px;min-width:0;">
+          <span style="color:#94a3b8;" id="topbar-brand">MedAlert</span>
+          <svg style="color:#cbd5e1;" id="topbar-sep" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          <span style="font-weight:600;color:#334155;" class="truncate" id="topbar-title">Medication Check</span>
+        </div>
+      </div>
+      <span style="font-size:11px;font-weight:500;color:#94a3b8;background:#f1f5f9;padding:4px 12px;border-radius:9999px;border:1px solid #e2e8f0;white-space:nowrap;flex-shrink:0;">Develop by Tommy</span>
+    </header>
+    <main class="content" id="page"></main>
+  </div>
+</div>
+<script>
+const state = { medPatientQuery:'', medSelectedPatient:null, medDropdownOpen:false, medResults:[], medMedication:'', medResult:null, medLoading:false };
+const AVATAR_COLORS = [{bg:'#dbeafe',text:'#1d4ed8'},{bg:'#dcfce7',text:'#15803d'},{bg:'#fef3c7',text:'#b45309'},{bg:'#fce7f3',text:'#be185d'},{bg:'#ede9fe',text:'#6d28d9'}];
+
+function byId(id){ return document.getElementById(id); }
+async function getJSON(url){ const res=await fetch(url); const payload=await res.json().catch(()=>({})); if(!res.ok) throw new Error(payload.error || `Request failed (${res.status})`); return payload; }
+async function postJSON(url,data){ const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); const payload=await res.json().catch(()=>({})); if(!res.ok) throw new Error(payload.error || `Request failed (${res.status})`); return payload; }
+function initials(name){ return String(name || '?').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase() || '?'; }
+function avatar(name,idx,size='md'){ const c=AVATAR_COLORS[idx%AVATAR_COLORS.length]; const dim=size==='sm'?'32px':size==='lg'?'48px':'40px'; const fs=size==='sm'?'12px':size==='lg'?'16px':'14px'; return `<div class="avatar" style="width:${dim};height:${dim};font-size:${fs};background:${c.bg};color:${c.text};">${initials(name)}</div>`; }
+function formatList(value){ return Array.isArray(value) ? value.join(' | ') : (value || ''); }
+function normalizePatient(raw){ const ageNum=typeof raw.age==='number'?raw.age:NaN; return { id:raw.id || raw.patientId || raw.patient_id || '', name:raw.name || 'Unknown patient', gender:raw.gender || '', age:Number.isFinite(ageNum)?Math.round(ageNum):'', conditions:formatList(raw.conditions), allergies:formatList(raw.allergies) }; }
+function openSidebar(){ byId('sidebar').classList.add('open'); byId('overlay').classList.add('show'); }
+function closeSidebar(){ byId('sidebar').classList.remove('open'); byId('overlay').classList.remove('show'); }
+function navigate(){ render(); }
+function riskMeterHTML(score,threshold){ const value=typeof score==='number'?score:0; const limit=typeof threshold==='number'?threshold:0.5; const high=value>=limit; const color=high?'#ef4444':'#10b981'; const bg=high?'#fee2e2':'#d1fae5'; return `<div style="display:flex;flex-direction:column;gap:8px;"><div style="display:flex;justify-content:space-between;"><span style="font-size:12px;font-weight:500;color:#64748b;">ML Risk Score</span><span style="font-size:14px;font-weight:700;color:${color};">${value.toFixed(4)}</span></div><div class="risk-track" style="background:${bg};"><div class="risk-fill" style="width:${Math.min(value,1)*100}%;background:${color};"></div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:#94a3b8;"><span>0</span><span>Threshold ${limit}</span><span>1</span></div></div>`; }
+function resultCardHTML(payload){ const alert=payload.alert===1 || payload.level==='ALERT'; const color=alert?'#dc2626':'#059669'; const bg=alert?'#fef2f2':'#f0fdf4'; const border=alert?'#fecaca':'#a7f3d0'; const risk=typeof payload.risk_score==='number'?payload.risk_score:(typeof payload.riskScore==='number'?payload.riskScore:null); const threshold=typeof payload.threshold==='number'?payload.threshold:0.5; return `<div class="card result-${alert?'alert':'safe'}"><div class="card-header result-header-${alert?'alert':'safe'}"><div style="width:32px;height:32px;border-radius:8px;background:${alert?'#fee2e2':'#d1fae5'};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${alert?'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>':'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'}</svg></div><div><div style="font-size:14px;font-weight:700;color:${color};">${alert?'ALERT':'NO ALERT'}</div><div style="font-size:12px;color:#64748b;">Safety check result</div></div></div><div class="card-body" style="display:flex;flex-direction:column;gap:20px;"><div style="font-size:14px;line-height:1.6;padding:12px;border-radius:8px;border:1px solid ${border};background:${bg};color:${color};">${payload.reason || 'No reason returned.'}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div style="padding:12px;border-radius:12px;background:#f8fafc;border:1px solid #f1f5f9;"><div style="font-size:12px;color:#64748b;font-weight:500;">Rule Alert</div><div style="font-size:20px;font-weight:700;color:${payload.rule_alert?'#dc2626':'#059669'};margin-top:4px;">${payload.rule_alert ?? 0}</div></div><div style="padding:12px;border-radius:12px;background:#f8fafc;border:1px solid #f1f5f9;"><div style="font-size:12px;color:#64748b;font-weight:500;">ML Alert</div><div style="font-size:20px;font-weight:700;color:${payload.ml_alert?'#dc2626':'#059669'};margin-top:4px;">${payload.ml_alert ?? 0}</div></div></div>${risk!==null?riskMeterHTML(risk,threshold):''}</div></div>`; }
+
+function updateMedPatientUI(){ const dd=byId('med-dropdown'); const chip=byId('med-selected-chip'); const medP=state.medSelectedPatient; if(chip){ if(medP){ chip.innerHTML=`${avatar(medP.name,0,'sm')}<div style="min-width:0;"><div style="font-size:12px;font-weight:600;color:#334155;" class="truncate">${medP.name}</div><div style="font-size:10px;color:#94a3b8;" class="truncate">${medP.age!==''?Math.round(medP.age)+'y · ':''}${medP.gender} · ${medP.id}</div></div><button type="button" onclick="clearMedPatient()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#94a3b8;">Clear</button>`; chip.style.display='flex'; }else{ chip.innerHTML=''; chip.style.display='none'; } } if(dd){ if(!medP&&state.medDropdownOpen&&state.medResults.length>0){ dd.innerHTML=state.medResults.map((p,i)=>`<button type="button" class="dropdown-item" onmousedown="selectMedPatient('${String(p.id).replace(/'/g,'')}')">${avatar(p.name,i,'sm')}<div style="min-width:0;flex:1;"><div style="font-size:14px;font-weight:500;color:#334155;" class="truncate">${p.name}</div><div style="font-size:12px;color:#94a3b8;">${p.id}</div></div><span style="font-size:12px;color:#94a3b8;">${p.age!==''?Math.round(p.age)+'y':''}</span></button>`).join(''); dd.style.display='block'; }else{ dd.style.display='none'; dd.innerHTML=''; } } }
+async function onMedPatientInput(value){ state.medPatientQuery=value; state.medSelectedPatient=null; state.medDropdownOpen=true; if(!value.trim()){ state.medResults=[]; updateMedPatientUI(); return; } try{ const payload=await getJSON(`/api/patients/search?q=${encodeURIComponent(value.trim())}`); state.medResults=(payload.results || []).map(normalizePatient); updateMedPatientUI(); }catch(err){ state.medResults=[]; updateMedPatientUI(); } }
+async function selectMedPatient(id){ try{ const patient=normalizePatient(await getJSON(`/api/patients/${encodeURIComponent(id)}`)); state.medSelectedPatient=patient; state.medPatientQuery=''; state.medDropdownOpen=false; const input=byId('med-patient-input'); if(input) input.value=patient.name; updateMedPatientUI(); }catch(err){ state.medResult={alert:1,reason:err.message,rule_alert:1,ml_alert:0,threshold:0.5}; render(); } }
+function clearMedPatient(){ state.medSelectedPatient=null; state.medPatientQuery=''; state.medResults=[]; const input=byId('med-patient-input'); if(input){ input.value=''; input.focus(); } updateMedPatientUI(); }
+async function runMedCheck(){ if(!state.medMedication || state.medLoading) return; state.medLoading=true; state.medResult=null; render(); const p=state.medSelectedPatient || {}; try{ state.medResult=await postJSON('/predict',{age:p.age || '', gender:p.gender || '', conditions:p.conditions || '', allergies:p.allergies || '', medication:state.medMedication}); }catch(err){ state.medResult={alert:1,reason:err.message,rule_alert:1,ml_alert:0,threshold:0.5}; } state.medLoading=false; render(); }
+function fillMedExample(){ state.medMedication='warfarin'; state.medResult=null; render(); }
+function clearMedForm(){ state.medMedication=''; state.medResult=null; clearMedPatient(); }
+
+function renderMedication(){ const medP=state.medSelectedPatient; const btnLabel=state.medLoading?`<svg class="spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Analyzing…`:`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Check Medication`; return `<div style="display:flex;flex-direction:column;gap:24px;"><div class="page-header"><div><h1 style="font-size:22px;font-weight:700;color:#0f172a;margin:0 0 4px;">Medication Check</h1><p style="font-size:14px;color:#64748b;margin:0;">Search a patient, enter a proposed medication, and review safety alerts.</p></div><div style="display:flex;flex-wrap:wrap;gap:8px;"><span class="badge" style="background:#f0fdf4;color:#15803d;border-color:#bbf7d0;"><span class="pulse" style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block;"></span>ML model loaded</span><span class="badge" style="background:#f8fafc;color:#64748b;border-color:#e2e8f0;">Threshold 0.5</span></div></div><div class="check-grid ${state.medResult?'has-result':''}"><div class="card"><div class="accent-bar"></div><div class="card-header"><div style="width:32px;height:32px;border-radius:8px;background:#ecfeff;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H20a2 2 0 0 1 2 2v3"/><circle cx="18" cy="18" r="3"/><path d="M22 22l-1.5-1.5"/></svg></div><div><div style="font-size:14px;font-weight:600;color:#1e293b;">New Safety Check</div><div style="font-size:12px;color:#94a3b8;">Fill in the fields below</div></div></div><div class="card-body" style="display:flex;flex-direction:column;gap:20px;"><div class="field" style="position:relative;"><label class="label">Patient (ID or name)</label><div class="input-wrap"><svg class="input-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="med-patient-input" class="input with-icon" type="text" placeholder="Search by name or patient ID…" oninput="onMedPatientInput(this.value)" /></div><div id="med-selected-chip" style="display:none;margin-top:8px;align-items:center;gap:8px;padding:10px;background:#ecfeff;border:1px solid #a5f3fc;border-radius:8px;"></div><div id="med-dropdown" class="dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;"></div></div>${medP?`<div class="form-row"><div class="field"><label class="label">Age</label><input class="input readonly" value="${medP.age}" readonly /></div><div class="field"><label class="label">Gender</label><input class="input readonly" value="${medP.gender}" readonly /></div></div><div class="field"><label class="label">Conditions</label><textarea class="textarea" rows="2" readonly>${medP.conditions}</textarea></div><div class="field"><label class="label">Allergies</label><textarea class="textarea" rows="2" readonly>${medP.allergies}</textarea></div>`:''}<div class="field"><label class="label">Proposed Medication</label><div class="input-wrap"><svg class="input-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H20a2 2 0 0 1 2 2v3"/><circle cx="18" cy="18" r="3"/><path d="M22 22l-1.5-1.5"/></svg><input id="med-medication-input" class="input with-icon" type="text" value="${state.medMedication}" placeholder="e.g., pseudoephedrine, warfarin…" oninput="state.medMedication=this.value;state.medResult=null;const btn=byId('med-check-btn');if(btn)btn.disabled=!this.value;" /></div></div><div style="display:flex;flex-wrap:wrap;gap:8px;padding-top:4px;"><button id="med-check-btn" class="btn-primary" onclick="runMedCheck()" ${(state.medLoading||!state.medMedication)?'disabled':''}>${btnLabel}</button><button class="btn-ghost" onclick="fillMedExample()">Fill Example</button><button class="btn-ghost" onclick="clearMedForm()">Clear</button></div></div></div>${state.medResult?resultCardHTML(state.medResult):''}</div></div>`; }
+function render(){ byId('page').innerHTML=renderMedication(); byId('topbar-title').textContent='Medication Check'; }
+render();
+</script>
+</body>
+</html>

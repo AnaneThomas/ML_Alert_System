@@ -1,0 +1,59 @@
+@startuml
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam participantBorderColor #1f2a44
+skinparam participantBackgroundColor #f8f9fa
+
+actor "Healthcare Provider" as provider
+participant "Frontend UI" as ui
+participant "Flask API" as api
+participant "Business Logic" as logic
+participant "Rule Engine" as rules
+participant "ML Model" as ml
+database "Data Store" as data
+
+provider -> ui : 1. Enter patient info
+provider -> ui : 2. Enter medication
+ui -> ui : 3. Validate inputs
+ui -> api : 4. POST /predict (JSON)
+activate api
+
+api -> logic : 5. Process request
+activate logic
+
+logic -> data : 6. Load patient data
+activate data
+data --> logic : 7. Patient profile
+deactivate data
+
+logic -> rules : 8. Check contraindications
+activate rules
+rules --> logic : 9. Rule-based alerts
+deactivate rules
+
+logic -> ml : 10. ML prediction
+activate ml
+ml --> logic : 11. Probability score
+deactivate ml
+
+logic -> logic : 12. Combine results
+logic --> api : 13. Response JSON
+deactivate logic
+
+api --> ui : 14. Return results
+deactivate api
+
+ui -> ui : 15. Render alerts
+ui -> provider : 16. Display safety assessment
+
+note over provider, data
+  Key validation points:
+  - Patient age calculation
+  - Condition-medication mapping
+  - Allergy cross-checks
+  - ML risk scoring
+end note
+
+@enduml

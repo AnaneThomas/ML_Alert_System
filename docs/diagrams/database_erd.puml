@@ -1,0 +1,68 @@
+@startuml
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+hide circle
+skinparam linetype ortho
+skinparam entityBorderColor #1f2a44
+skinparam entityBackgroundColor #ffffff
+
+entity "PATIENT" as PATIENT {
+  * patient_id : VARCHAR <<PK>>
+  --
+  first_name : VARCHAR
+  last_name : VARCHAR
+  birthdate : DATE
+  gender : VARCHAR
+  address : VARCHAR
+}
+
+entity "CONDITION" as CONDITION {
+  * condition_id : INT <<PK>>
+  --
+  patient_id : VARCHAR <<FK>>
+  condition_name : VARCHAR
+  onset_date : DATE
+  status : VARCHAR
+}
+
+entity "ALLERGY" as ALLERGY {
+  * allergy_id : INT <<PK>>
+  --
+  patient_id : VARCHAR <<FK>>
+  allergen : VARCHAR
+  reaction : VARCHAR
+  severity : VARCHAR
+  status : VARCHAR
+}
+
+entity "MEDICATION_ORDER" as MED_ORDER {
+  * order_id : INT <<PK>>
+  --
+  patient_id : VARCHAR <<FK>>
+  medication_name : VARCHAR
+  dose : VARCHAR
+  route : VARCHAR
+  frequency : VARCHAR
+  start_date : DATE
+  end_date : DATE
+}
+
+entity "ALERT_RESULT" as ALERT {
+  * alert_id : INT <<PK>>
+  --
+  order_id : INT <<FK>>
+  rule_alert : BOOLEAN
+  rule_reason : VARCHAR
+  ml_probability : DECIMAL(5,4)
+  risk_level : VARCHAR
+  created_at : DATETIME
+}
+
+PATIENT ||--o{ CONDITION : has
+PATIENT ||--o{ ALLERGY : has
+PATIENT ||--o{ MED_ORDER : receives
+MED_ORDER ||--o{ ALERT : generates
+
+@enduml

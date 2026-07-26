@@ -1,0 +1,69 @@
+@startuml
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam rectangle {
+  BorderColor #1f2a44
+  BackgroundColor #f8f9fa
+}
+skinparam database {
+  BorderColor #1f2a44
+  BackgroundColor #e3f2fd
+}
+skinparam package {
+  BorderColor #1f2a44
+  BackgroundColor #fff3e0
+}
+
+rectangle "Frontend (Browser)" as frontend {
+  rectangle "HTML/CSS/JS" as ui
+  rectangle "Patient Search" as search
+  rectangle "Medication Input" as med_input
+  rectangle "Alert Display" as alert_display
+}
+
+rectangle "Backend (Flask Server)" as backend {
+  rectangle "API Endpoints" as api
+  rectangle "Business Logic" as logic
+  rectangle "ML Model" as ml_model
+  rectangle "Rule Engine" as rules
+}
+
+database "Data Layer" as data {
+  database "Patients CSV" as patients_csv
+  database "Medications CSV" as meds_csv
+  database "Trained Model (.joblib)" as model_file
+}
+
+package "External Services" as external {
+  rectangle "Synthea Data Generator" as synthea
+}
+
+frontend --> backend : HTTP/JSON API
+backend --> data : Read/Write
+external --> data : Generate Synthetic Data
+
+note right of frontend
+  - Responsive UI
+  - Real-time validation
+  - Patient selection
+  - Medication checking
+end note
+
+note right of backend
+  - /predict endpoint
+  - /api/patients/search
+  - /api/patients/<id>
+  - ML inference
+  - Rule-based checks
+end note
+
+note right of data
+  - Patient demographics
+  - Clinical history
+  - Allergies
+  - Medication data
+end note
+
+@enduml

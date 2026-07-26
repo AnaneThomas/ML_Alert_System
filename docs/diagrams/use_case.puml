@@ -1,0 +1,57 @@
+@startuml
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam actorStyle awesome
+skinparam usecase {
+  BorderColor #1f2a44
+  BackgroundColor #f8f9fa
+}
+
+actor "Healthcare Provider" as provider
+actor "System Administrator" as admin
+
+rectangle "Medication Alert System" as system {
+  usecase "Search Patient" as UC1
+  usecase "View Patient Profile" as UC2
+  usecase "Check Medication Safety" as UC3
+  usecase "View Alert Results" as UC4
+  usecase "Fill Example Data" as UC5
+  usecase "Clear Form" as UC6
+  usecase "Manage Patient Data" as UC7
+  usecase "Update System Rules" as UC8
+  usecase "Generate Reports" as UC9
+}
+
+provider --> UC1
+provider --> UC2
+provider --> UC3
+provider --> UC4
+provider --> UC5
+provider --> UC6
+
+admin --> UC7
+admin --> UC8
+admin --> UC9
+
+UC1 --> UC2 : <<include>>
+UC3 --> UC4 : <<include>>
+
+note right of UC3
+  Combines rule-based
+  and ML analysis
+end note
+
+note left of provider
+  - Doctors
+  - Pharmacists
+  - Nurses
+end note
+
+note left of admin
+  - IT Staff
+  - System Managers
+end note
+
+@enduml

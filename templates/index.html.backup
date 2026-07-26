@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Medication Alert System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+</head>
+<body>
+  <main class="container">
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">Medication Alert</div>
+        <nav class="nav">
+          <a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 13h8V3H3v10z"></path>
+              <path d="M13 21h8V11h-8v10z"></path>
+              <path d="M13 3h8v6h-8V3z"></path>
+              <path d="M3 21h8v-6H3v6z"></path>
+            </svg>
+            Medication
+          </a>
+          <a href="{{ url_for('patients') }}" class="{% if request.endpoint == 'patients' %}active{% endif %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="8.5" cy="7" r="4"></circle>
+              <path d="M20 8v6"></path>
+              <path d="M23 11h-6"></path>
+            </svg>
+            Patients
+          </a>
+        </nav>
+      </aside>
+
+      <section class="content">
+        <div class="topbar">
+          <div class="topbar-title">Clinical Medication Alert</div>
+          <div class="muted">Prototype</div>
+        </div>
+
+        <div class="page">
+          <header class="header">
+            <p class="sub">
+              Search/select a patient, enter a proposed medication, then review allergy/contraindication and ML risk.
+            </p>
+          </header>
+
+          <section class="card accent-card">
+            <div class="badge-row">
+              {% if model_loaded %}
+                <span class="badge ok">ML model loaded</span>
+              {% else %}
+                <span class="badge warn">ML model not loaded (rules only)</span>
+              {% endif %}
+              <span class="badge">Threshold: {{ threshold }}</span>
+            </div>
+
+            <div class="patient-picker">
+              <label>
+                <span>Patient Search (ID or name)</span>
+                <input type="text" id="patient-search" placeholder="Search patient..." autocomplete="off" />
+              </label>
+              <div id="patient-results" class="results" hidden></div>
+              <div id="patient-selected" class="selected" hidden></div>
+            </div>
+
+            <form id="predict-form" class="form">
+              <input type="hidden" id="age" />
+              <input type="hidden" id="gender" />
+              <input type="hidden" id="conditions" />
+              <input type="hidden" id="allergies" />
+
+              <label>
+                <span>Proposed Medication</span>
+                <input type="text" id="medication" placeholder="e.g., pseudoephedrine" required />
+              </label>
+
+              <div class="actions">
+                <button type="submit" id="submit-btn">Check Medication</button>
+                <button type="button" id="example-btn" class="secondary">Fill Example</button>
+                <button type="button" id="clear-btn" class="secondary">Clear</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="card" id="result-card" hidden>
+            <h2>Result</h2>
+            <div id="result" class="result"></div>
+          </section>
+
+          <footer class="footer">
+            <p>Final Year Project Prototype</p>
+          </footer>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
