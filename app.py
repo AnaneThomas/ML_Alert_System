@@ -104,11 +104,13 @@ def _age_years(birthdate: str | None) -> int | None:
 @lru_cache(maxsize=1)
 def _load_csv_bundle(base_dir: Path) -> dict[str, pd.DataFrame]:
     csv_dir = base_dir / "csv"
-    # Try sample files first, fall back to full files
-    patients_file = csv_dir / "sample_patients.csv" if (csv_dir / "sample_patients.csv").exists() else csv_dir / "patients.csv"
-    conditions_file = csv_dir / "sample_conditions.csv" if (csv_dir / "sample_conditions.csv").exists() else csv_dir / "conditions.csv"
-    allergies_file = csv_dir / "sample_allergies.csv" if (csv_dir / "sample_allergies.csv").exists() else csv_dir / "allergies.csv"
-    meds_file = csv_dir / "sample_medications.csv" if (csv_dir / "sample_medications.csv").exists() else csv_dir / "medications.csv"
+    # Use sample files on Render (detected by RENDER environment variable), full files locally
+    use_sample = os.environ.get("RENDER") is not None
+    
+    patients_file = csv_dir / "sample_patients.csv" if use_sample else csv_dir / "patients.csv"
+    conditions_file = csv_dir / "sample_conditions.csv" if use_sample else csv_dir / "conditions.csv"
+    allergies_file = csv_dir / "sample_allergies.csv" if use_sample else csv_dir / "allergies.csv"
+    meds_file = csv_dir / "sample_medications.csv" if use_sample else csv_dir / "medications.csv"
     
     patients = pd.read_csv(patients_file, dtype=str)
     conditions = pd.read_csv(conditions_file, dtype=str)
