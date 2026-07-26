@@ -42,8 +42,7 @@ Thumbs.db
 
 # Project specific
 models/*.joblib
-csv/*.csv
-!csv/sample_*.csv
+# csv/*.csv  # Include CSV files for Render deployment
 data/*.csv
 ind.html
 
