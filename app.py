@@ -26,32 +26,42 @@ def _default_contraindication_rules() -> list[dict]:
         {
             "condition_keywords": ["ulcer", "peptic"],
             "med_keywords": ["ibuprofen", "naproxen", "diclofenac", "aspirin", "indomethacin", "ketorolac"],
-            "reason": "Possible contraindication: ulcer/peptic disease + NSAID risk",
+            "reason": "⚠️ CONTRAINDICATED: NSAIDs (ibuprofen, naproxen, etc.) can worsen peptic ulcers by damaging the stomach lining and increasing bleeding risk. Patient has ulcer/peptic disease.",
         },
         {
             "condition_keywords": ["asthma"],
             "med_keywords": ["propranolol", "nadolol", "timolol"],
-            "reason": "Possible contraindication: asthma + non-selective beta blocker risk",
+            "reason": "⚠️ CONTRAINDICATED: Non-selective beta blockers (propranolol, nadolol, timolol) can trigger bronchospasm and asthma attacks. Patient has asthma.",
         },
         {
             "condition_keywords": ["pregnan", "pregnancy"],
             "med_keywords": ["warfarin", "isotretinoin", "lisinopril", "enalapril", "valpro"],
-            "reason": "Possible contraindication: pregnancy + teratogenic/unsafe medication risk",
+            "reason": "⚠️ CONTRAINDICATED: This medication poses significant risks during pregnancy (teratogenic effects, fetal harm). Patient is pregnant. Consider safer alternatives.",
         },
         {
             "condition_keywords": ["kidney", "renal"],
             "med_keywords": ["ibuprofen", "naproxen", "diclofenac", "ketorolac"],
-            "reason": "Possible contraindication: kidney/renal disease + NSAID risk",
+            "reason": "⚠️ CONTRAINDICATED: NSAIDs can reduce kidney blood flow and worsen renal function. Patient has kidney/renal disease. Use with extreme caution or avoid.",
         },
         {
             "condition_keywords": ["hypertension"],
             "med_keywords": ["pseudoephedrine"],
-            "reason": "Possible contraindication: hypertension + decongestant risk",
+            "reason": "⚠️ CONTRAINDICATED: Pseudoephedrine can increase blood pressure and heart rate. Patient has hypertension. Consider alternative decongestants.",
         },
         {
             "condition_keywords": ["diabetes"],
             "med_keywords": ["hydrochlorothiazide", "furosemide"],
-            "reason": "Possible contraindication: diabetes + diuretic risk",
+            "reason": "⚠️ CAUTION: Thiazide and loop diuretics may affect blood glucose control in diabetic patients. Monitor blood sugar closely.",
+        },
+        {
+            "condition_keywords": ["liver", "hepatic"],
+            "med_keywords": ["acetaminophen", "paracetamol"],
+            "reason": "⚠️ CAUTION: High doses of acetaminophen can cause liver damage. Patient has liver/hepatic disease. Use reduced dosage.",
+        },
+        {
+            "condition_keywords": ["depression", "suicidal"],
+            "med_keywords": ["fluoxetine", "sertraline", "paroxetine"],
+            "reason": "⚠️ CAUTION: SSRIs may increase suicidal thoughts in young adults with depression. Monitor closely, especially during treatment initiation.",
         },
     ]
 
@@ -64,7 +74,7 @@ def _rule_alert(conditions: str, allergies: str, medication: str, rules: list[di
     # Allergy overlap (simple heuristic)
     for token in [t.strip() for t in re.split(r"[|,;]", all_text) if t.strip()]:
         if token and token in med_desc:
-            return 1, f"Possible allergy match: allergy '{token}' overlaps medication"
+            return 1, f"⚠️ ALLERGY ALERT: Patient has documented allergy to '{token}'. This medication may contain or cross-react with this allergen. Administering could cause allergic reaction ranging from mild rash to life-threatening anaphylaxis. Consider alternative medication or consult allergy specialist."
 
     for rule in rules:
         if _contains_any(cond_text, rule["condition_keywords"]) and _contains_any(med_desc, rule["med_keywords"]):
